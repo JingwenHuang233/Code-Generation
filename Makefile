@@ -1,21 +1,13 @@
-CC = g++
-CFLAGS = -g -O0 -std=c++11
+CFLAGS = -g -Wall -ansi -pedantic
 
-SRC  = lib.cpp                        # list of C++ source files
-OBJS = $(patsubst %.cpp, %.o, $(SRC)) # list of object files
+phase3: miniL.lex miniL.y
+	bison -v -d --file-prefix=y miniL.y
+	flex miniL.lex
+	g++ $(CFLAGS) -std=c++11 -o phase3 y.tab.c lex.yy.c -lfl
+	rm -f lex.yy.c y.tab.* y.output *.o
 
-
-miniL: miniL-lex.o miniL-parser.o $(OBJS)
-	$(CC) $^ -o $@ -lfl
-
-%.o: %.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
-
-miniL-lex.cpp: miniL.lex miniL-parser.cpp
-	flex -o $@ $< 
-
-miniL-parser.cpp: miniL.y
-	bison -d -v -g -o $@ $<
-
-clean:
-	rm -f *.o miniL-lex.cpp miniL-parser.cpp miniL-parser.hpp stack.hh *.output *.dot miniL
+test: phase3
+	cat ./primes.min | ./phase3 > ./primes.mil
+	cat ./fibonacci.min | ./phase3 > ./fibonacci.mil
+	cat ./errors.min | ./phase3 > ./errors.mil
+	cat ./for.min | ./phase3 > ./for.mil
